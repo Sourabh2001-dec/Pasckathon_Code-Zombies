@@ -7,7 +7,7 @@ var logger = require("morgan");
 var SocketService = require("./socket-service");
 
 var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
+var authRouter = require("./routes/auths");
 
 require("dotenv").config();
 
@@ -20,7 +20,7 @@ mongoose
   .then((result) => console.log("Mongo DB Connected"))
   .catch((err) => console.log(err.message));
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 var app = express();
 const server = require("http").Server(app);
 
@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
+app.use("/auth", authRouter);
 
 app.use((req, res, next) => {
   const error = new Error(`Not found - ${req.originalUrl}`);
@@ -39,10 +39,9 @@ app.use((req, res, next) => {
   next(error);
 });
 
-
 // eslint-disable-next-line no-unused-vars
 app.use((error, req, res, next) => {
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode);
   if (process.env.NODE_END == "production") {
     res.json({

@@ -82,6 +82,16 @@ userSchema.statics.login = async function (email, password) {
   throw Error("incorrect email");
 };
 
+userSchema.options.toJSON = {
+  transform: function(doc, ret, options) {
+      ret.id = ret._id;
+      delete ret.password;
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+  }
+};
+
 const User = mongoose.model("user", userSchema);
 
 module.exports = User;
