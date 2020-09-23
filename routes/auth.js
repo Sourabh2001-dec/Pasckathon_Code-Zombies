@@ -86,7 +86,7 @@ router.post("/signup/guest", async (req, res) => {
 });
 
 router.post("/signup", verifyUser, verifyAdmin, async (req, res) => {
-  const { email, firstname, lastname, password, role, collegeid } = req.body;
+  const { email, firstname, lastname, password, role, collegeid} = req.body;
 
   if (!req.user.college === collegeid) {
     return res
@@ -98,14 +98,15 @@ router.post("/signup", verifyUser, verifyAdmin, async (req, res) => {
     return res.status(406).json({ error: "Insufficient information" });
   }
   try {
-    const college = await College.findById(collegeid);
+    const college = await College.findById(req.user.college);
+    console.log(college)
     let attr = {
       email,
       firstname,
       lastname,
       password,
       role: role.toLowerCase(),
-      college,
+      college : college,
     };
     attr[role.toLowerCase() + "info"] = req.body[role.toLowerCase() + "info"];
     const user = await User.create(attr);

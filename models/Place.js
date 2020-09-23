@@ -6,6 +6,7 @@ const timeslotSchema = new mongoose.Schema({
   description: { type: String, default: "" },
   allowedclass: [{ type: String }],
   reservedby: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  reservername : String
 });
 
 const placeSchema = new mongoose.Schema({

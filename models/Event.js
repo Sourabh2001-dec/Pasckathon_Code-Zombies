@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema({
-  place: { type: mongoose.Schema.Types.ObjectId, ref: "Place", required : [true,"Location is required"] },
+  location: { type: mongoose.Schema.Types.ObjectId, ref: "Place", required : [true,"Location is required"] },
   entered: { type: Boolean, default: false },
   exited: { type: Boolean, default: false },
   entrytime: { type: Date },
@@ -12,4 +12,4 @@ const eventSchema = new mongoose.Schema({
 
 const Event = mongoose.model("Event", eventSchema);
 
-exports.default = Event;
+module.exports = Event;
