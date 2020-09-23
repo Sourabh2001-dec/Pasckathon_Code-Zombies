@@ -16,9 +16,8 @@ opts.secretOrKey = process.env.JWT_SECRET;
 
 exports.jwtPassport = passport.use(
   new JwtStrategy(opts, (jwt_payload, done) => {
+    console.log(jwt_payload)
     User.findOne({ _id: new ObjectID(jwt_payload.id) }, (err, user) => {
-      console.log("authenticate",err);
-      console.log("authenticate",user);
       if (err) {
         return done(err, false);
       } else if (user) {

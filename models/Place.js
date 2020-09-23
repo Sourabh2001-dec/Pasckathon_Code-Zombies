@@ -1,21 +1,23 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
-const timeslotSchema = mongoose.Schema({
-    starttime : {type : Date, required : [true,"Please enter start time!"]},
-    endtime : {type : Date, required : [true,"Please enter end time!"]},
-    allowedclass : [{type:String}],
-    reservedby : { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-})
+const timeslotSchema = new mongoose.Schema({
+  starttime: { type: Date, required: [true, "Please enter start time!"] },
+  endtime: { type: Date, required: [true, "Please enter end time!"] },
+  description: { type: String, default: "" },
+  allowedclass: [{ type: String }],
+  reservedby: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+});
 
-const placeSchema  = new mongoose.Schema({
-    limit : {type : Number , required : [true,"Please provide people limit!"]},
-    name : {
-        type : String,
-        require : [true,"Please provide name to the place"]
-    },
-    reservations : [{type : timeslotSchema}]
-})
+const placeSchema = new mongoose.Schema({
+  limit: { type: Number, required: [true, "Please provide people limit!"] },
+  name: {
+    type: String,
+    required: [true, "Please provide name to the place"],
+  },
+  type: { type: String, enum: ["class", "other", "lab"] },
+  reservations: [timeslotSchema],
+});
 
-const Place = mongoose.model("Building",placeSchema)
+const Place = mongoose.model("Place", placeSchema);
 
-module.exports = Place
+module.exports = Place;

@@ -9,13 +9,11 @@ class SocketService {
     this.io.use(
       jwtAuth.authenticate(
         {
-          secret: process.env.JWT_SECRET, // required, used to verify the token's signature
+          secret: process.env.JWT_SECRET,
           algorithm: "HS256",
           succeedWithoutToken: true,
         },
         function (payload, done) {
-          // you done callback will not include any payload data now
-          // if no token was supplied
           if (payload && payload.id) {
             User.findOne({ _id: new ObjectID(payload.id) }, function (
               err,
@@ -25,23 +23,26 @@ class SocketService {
               console.log("error", err);
               console.log("user", user);
               if (err) {
-                // return error
                 return done(err);
               }
               if (!user) {
-                // return fail with an error message
                 return done(null, false, "user does not exist");
               }
-              // return success with a user info
               return done(null, user);
             });
           } else {
-            return done(); // in your connection handler user.logged_in will be false
+            return done();
           }
         }
       )
     );
     this.io.on("connect", (socket) => {
+      // if admin join admin room else join normal room
+      if (socket.request.user.admin && socket.request.user.college) {
+        socket.join(socket.request.user.college + "-admin");
+      } else if (socket.request.user.college) {
+        socket.join(socket.request.user.college);
+      }
       socket.emit("success", {
         message: "success logged in!",
         user: { ...socket.request.user._doc },
@@ -52,9 +53,13 @@ class SocketService {
     this.io.on("disconnect", (socket) => console.log("disconnected"));
   }
 
-  emiter(event, body) {
+  emiter(event, collegeid, body) {
     console.log("emitting", body);
-    if (body) this.io.emit(event, body);
+    if (body) this.io.to(collegeid).emit(event, body);
+  }
+  adminemiter(event, collegeid, body) {
+    console.log("emitting", body);
+    if (body) this.io.to(collegeid + "-admin").emit(event, body);
   }
 }
 

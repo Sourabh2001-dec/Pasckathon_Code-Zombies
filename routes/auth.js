@@ -48,7 +48,7 @@ router.post("/login", async (req, res) => {
 
   try {
     const user = await User.login(email, password);
-    const token = getToken({ id: user.toJSON()._id });
+    const token = getToken({ id: user.toJSON().id });
     res.status(200).json({ user, token });
   } catch (err) {
     const errors = handleErrors(err);
@@ -71,7 +71,7 @@ router.post("/signup/guest", async (req, res) => {
         college,
       });
 
-      const token = getToken({ id: user.toJSON()._id });
+      const token = getToken({ id: user.toJSON().id });
       res.status(201).json({ user, token });
     } catch (err) {
       console.log(err);
@@ -110,7 +110,7 @@ router.post("/signup", verifyUser, verifyAdmin, async (req, res) => {
     attr[role.toLowerCase() + "info"] = req.body[role.toLowerCase() + "info"];
     const user = await User.create(attr);
 
-    const token = getToken({ id: user.toJSON()._id });
+    const token = getToken({ id: user.toJSON().id });
     return res.status(201).json({ user, token });
   } catch (err) {
     console.log(err);

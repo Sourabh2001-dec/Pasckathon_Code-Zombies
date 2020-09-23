@@ -7,7 +7,10 @@ var logger = require("morgan");
 var SocketService = require("./socket-service");
 
 var indexRouter = require("./routes/index");
-var authRouter = require("./routes/auths");
+var authRouter = require("./routes/auth");
+var createRouter = require("./routes/create")
+var infoRouter = require("./routes/info")
+var eventRouter = require("./routes/event")
 
 require("dotenv").config();
 
@@ -16,6 +19,7 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
+    useFindAndModify: false
   })
   .then((result) => console.log("Mongo DB Connected"))
   .catch((err) => console.log(err.message));
@@ -32,6 +36,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
+app.use("/create",createRouter)
+app.use("/info",infoRouter)
+app.use("/event",eventRouter)
 
 app.use((req, res, next) => {
   const error = new Error(`Not found - ${req.originalUrl}`);
