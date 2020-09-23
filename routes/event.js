@@ -3,6 +3,7 @@ const { verifyUser } = require("../utils/authenticate");
 const Place = require("../models/Place");
 const User = require("../models/User");
 const Event = require("../models/Event");
+const { incrcount, decrcount, getCount } = require("../utils/count");
 
 router.post("/enter", verifyUser, async (req, res) => {
   const { entrytime, locationid } = req.body;
@@ -20,6 +21,9 @@ router.post("/enter", verifyUser, async (req, res) => {
     });
     const location = await Place.findById(locationid);
     console.log(location);
+    if (!(getCount(req.user.college, locationid) < location.limit)) {
+      return res.json({ denied: "Your entry is denied" });
+    }
     const entryevent = await Event.create({
       entrytime: new Date(entrytime),
       location: location,
@@ -29,19 +33,19 @@ router.post("/enter", verifyUser, async (req, res) => {
     let user = await User.findById(req.user._id);
     user.event.push(entryevent);
     await user.save();
-    req.app.get("socketService").emiter("entry", req.user.college, {
-      locationid: location._id,
-      name: location.name,
-      type: "entry",
-    });
+    let data = incrcount(req.user.college, location._id.toString());
+    req.app.get("socketService").emiter("entry", req.user.college, data);
     req.app.get("socketService").adminemiter("entry", req.user.college, {
-      locationid: location._id,
-      name: location.name,
-      person: {
-        name: req.user.firstname + " " + req.user.lastname,
-        role: req.user.role,
+      eventinfo: {
+        locationid: location._id,
+        name: location.name,
+        person: {
+          name: req.user.firstname + " " + req.user.lastname,
+          role: req.user.role,
+        },
+        type: "entry",
       },
-      type: "entry",
+      data,
     });
     res.status(200).json({ event: entryevent });
   } catch (err) {
@@ -69,20 +73,19 @@ router.post("/:eventid/exit", verifyUser, async (req, res) => {
     console.log(exitevent);
     await exitevent.save();
     exitevent = await Event.findById(eventid);
-
-    req.app.get("socketService").emiter("exit", req.user.college, {
-      locationid: exitevent.location._id,
-      name: exitevent.location.name,
-      type: "exit",
-    });
+    let data = decrcount(req.user.college, location._id.toString());
+    req.app.get("socketService").emiter("exit", req.user.college, data);
     req.app.get("socketService").adminemiter("exit", req.user.college, {
-      locationid: exitevent.location._id,
-      name: exitevent.location.name,
-      person: {
-        name: req.user.firstname + " " + req.user.lastname,
-        role: req.user.role,
+      eventinfo: {
+        locationid: exitevent.location._id,
+        name: exitevent.location.name,
+        person: {
+          name: req.user.firstname + " " + req.user.lastname,
+          role: req.user.role,
+        },
+        type: "exit",
       },
-      type: "exit",
+      data,
     });
     res.status(200).json({ event: exitevent });
   } catch (err) {
@@ -129,19 +132,17 @@ router.post(
         description,
         allowedclass,
         reservedby: reserver,
-        reservername : reserver.firstname + " " + reserver.lastname
+        reservername: reserver.firstname + " " + reserver.lastname,
       });
       location.save();
       reserver.toObject();
-      res
-        .status(203)
-        .json({
-          starttime,
-          endtime,
-          description,
-          allowedclass,
-          reservedby: reserver.firstname + " " + reserver.lastname,
-        });
+      res.status(203).json({
+        starttime,
+        endtime,
+        description,
+        allowedclass,
+        reservedby: reserver.firstname + " " + reserver.lastname,
+      });
     } catch (error) {
       console.log(error.message);
       res.json({ error: "Failed to create reservation" });
